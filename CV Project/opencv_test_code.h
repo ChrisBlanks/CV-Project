@@ -38,6 +38,6 @@ namespace cb_func {
 
 	void imageOperations(void);
 	void webcamTest(void);
-	cv::Mat editFrame(cv::Mat frame);
+	void editFrame(cv::Mat frame);
 
 }

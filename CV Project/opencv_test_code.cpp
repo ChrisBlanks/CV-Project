@@ -34,25 +34,24 @@ void cb_func::imageOperations(void) {
 
 }
 
-//changes certain pixel values to what's defined in the R, G, and B constants
-cv::Mat cb_func::editFrame(cv::Mat frame) {
-	cv::Mat new_frame = frame;
+//edits the original frame
+void cb_func::editFrame(cv::Mat frame) {
 
 	for (int y = 0; y < frame.rows; y++) {
 		for (int x = 0; x < frame.cols; x++) {
-			cv::Vec3b pix_colors = new_frame.at<cv::Vec3b>(y, x);
+			cv::Vec3b pix_colors = frame.at<cv::Vec3b>(y, x);
 
-			if (pix_colors[0] < R_OLD && pix_colors[1] > G_OLD && pix_colors[2] < B_OLD) {
+			if (pix_colors[0] < B_OLD && pix_colors[1] > G_OLD && pix_colors[2] < R_OLD) {
 				pix_colors[0] = R_NEW;
 				pix_colors[1] = G_NEW;
 				pix_colors[2] = B_NEW;
 			}
 
-			new_frame.at<cv::Vec3b>(y, x) = pix_colors;
+			frame.at<cv::Vec3b>(y, x) = pix_colors;
 		}
 	}
 
-	return new_frame;
+	return; 
 }
 
 
@@ -68,7 +67,7 @@ void cb_func::webcamTest(void) {
 		cap >> frame;
 
 		if (frame.empty()) break; //break if frame isn't captured
-		frame = cb_func::editFrame(frame);
+		cb_func::editFrame(frame);
 		cv::imshow("Webcam Stream", frame); //display each frame indefinitely
 		if (cv::waitKey(10) == ESC_CODE) break; //break if ESC is pressed
 	}
@@ -77,3 +76,5 @@ void cb_func::webcamTest(void) {
 
 	return;
 }
+
+

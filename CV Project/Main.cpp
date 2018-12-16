@@ -10,8 +10,8 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	//cb_func::webcamTest();
-	cb_func::imageOperations();
+	cb_func::webcamTest();
+	//cb_func::imageOperations();
 
 	return 0;
 }
