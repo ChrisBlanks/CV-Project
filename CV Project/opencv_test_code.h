@@ -15,6 +15,9 @@
 #include <opencv2/calib3d.hpp>
 #include <opencv2/cvconfig.h>
 #include <opencv2/features2d.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/objdetect.hpp>
+#include <opencv2/core/fast_math.hpp>
 
 
 
@@ -39,5 +42,6 @@ namespace cb_func {
 	void imageOperations(void);
 	void webcamTest(void);
 	void editFrame(cv::Mat frame);
-
+	void findFace(void);
+	void detectAndShow(cv::Mat frame, cv::CascadeClassifier face, cv::CascadeClassifier eyes);
 }

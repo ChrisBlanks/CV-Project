@@ -9,8 +9,8 @@ int main(int argc, char* argv[]) {
 			arguments.push_back(argv[i]);
 		}
 	}
-
-	cb_func::webcamTest();
+	cb_func::findFace();
+	//cb_func::webcamTest();
 	//cb_func::imageOperations();
 
 	return 0;

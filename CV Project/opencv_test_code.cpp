@@ -77,4 +77,61 @@ void cb_func::webcamTest(void) {
 	return;
 }
 
+void cb_func::detectAndShow(cv::Mat frame,cv::CascadeClassifier face, cv::CascadeClassifier eyes_casc) {
+	cv::Mat gray_frame;
+	cvtColor(frame, gray_frame, cv::COLOR_BGR2GRAY);
+	cv::equalizeHist(gray_frame,gray_frame);
 
+	std::vector<cv::Rect> faces;
+	face.detectMultiScale(gray_frame, faces);
+
+	for (size_t i = 0; i < faces.size(); i++) {
+		cv::Point center(faces[i].x + faces[i].width / 2, faces[i].y + faces[i].height / 2);
+		cv::ellipse(frame, center, cv::Size(faces[i].width / 2, faces[i].height / 2), 0, 0, 360, cv::Scalar(255, 0, 255), 4);
+		cv::Mat faceROI = gray_frame(faces[i]);
+		
+		std::vector<cv::Rect> eyes;
+		eyes_casc.detectMultiScale(faceROI,eyes);
+		for (size_t j = 0; j < eyes.size(); j++) {
+			cv::Point eye_center(faces[i].x + eyes[j].x + eyes[j].width / 2, faces[i].y + eyes[j].y + eyes[j].height / 2);
+			int radius = ((eyes[j].width + eyes[j].height)*0.25);
+			cv::circle(frame, eye_center, radius,cv::Scalar(255,0,0),4);
+		}
+	}
+	cv::imshow("Real Time Detector",frame);
+}
+
+void cb_func::findFace(void) {
+	cv::CascadeClassifier face_cascade;
+	cv::CascadeClassifier eyes_cascade;
+
+	const std::string face_haarcascade = "/C++Libraries/opencv/build/etc/haarcascades/haarcascade_frontalface_alt.xml";
+	const std::string eyes_haarcascade = "/C++Libraries/opencv/build/etc/haarcascades/haarcascade_eye.xml";
+
+	if (!face_cascade.load(face_haarcascade)) {
+		std::cout << "Couldn't load face";
+		return; }
+	if (!eyes_cascade.load(eyes_haarcascade)) {
+		std::cout << "Couldn't load eye";
+		return; }
+
+	cv::VideoCapture cap; //Opens default webcam
+
+	if (!cap.open(0)) {
+		std::cout << "Couldn't open camera";
+		return;
+	}
+
+	cv::Mat frame;
+	while (cap.read(frame)) {
+		if (frame.empty()) {
+			break; }
+
+		cb_func::detectAndShow(frame,face_haarcascade,eyes_haarcascade);
+
+		if (cv::waitKey(10) == 27) { break; }
+	}
+
+
+	return;
+}
