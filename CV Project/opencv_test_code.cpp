@@ -40,14 +40,14 @@ void cb_func::editFrame(cv::Mat frame) {
 	for (int y = 0; y < frame.rows; y++) {
 		for (int x = 0; x < frame.cols; x++) {
 			cv::Vec3b pix_colors = frame.at<cv::Vec3b>(y, x);
-
+			//searches for pixels that meet the BGR criteria & changes them to a new color
 			if (pix_colors[0] < B_OLD && pix_colors[1] > G_OLD && pix_colors[2] < R_OLD) {
 				pix_colors[0] = R_NEW;
 				pix_colors[1] = G_NEW;
 				pix_colors[2] = B_NEW;
 			}
 
-			frame.at<cv::Vec3b>(y, x) = pix_colors;
+			frame.at<cv::Vec3b>(y, x) = pix_colors; 
 		}
 	}
 
@@ -77,28 +77,29 @@ void cb_func::webcamTest(void) {
 	return;
 }
 
-void cb_func::detectAndShow(cv::Mat frame,cv::CascadeClassifier face, cv::CascadeClassifier eyes_casc) {
+void cb_func::detectAndShow(cv::Mat frame,cv::CascadeClassifier face_casc, cv::CascadeClassifier eyes_casc) {
 	cv::Mat gray_frame;
 	cvtColor(frame, gray_frame, cv::COLOR_BGR2GRAY);
-	cv::equalizeHist(gray_frame,gray_frame);
+	cv::equalizeHist(gray_frame,gray_frame); //this func is meant for grayscale images
+	//makes histogram of intensities more even, which brings more contrast
 
 	std::vector<cv::Rect> faces;
-	face.detectMultiScale(gray_frame, faces);
+	face_casc.detectMultiScale(gray_frame, faces); //detects frontal face & puts results into faces vector
 
 	for (size_t i = 0; i < faces.size(); i++) {
 		cv::Point center(faces[i].x + faces[i].width / 2, faces[i].y + faces[i].height / 2);
-		cv::ellipse(frame, center, cv::Size(faces[i].width / 2, faces[i].height / 2), 0, 0, 360, cv::Scalar(255, 0, 255), 4);
-		cv::Mat faceROI = gray_frame(faces[i]);
+		cv::ellipse(frame, center, cv::Size(faces[i].width / 2, faces[i].height / 2), 0, 0, 360, cv::Scalar(255, 0, 255), 4); 
+		cv::Mat faceROI = gray_frame(faces[i]); //shrinks the region of interest for detecting eyes
 		
 		std::vector<cv::Rect> eyes;
-		eyes_casc.detectMultiScale(faceROI,eyes);
+		eyes_casc.detectMultiScale(faceROI,eyes); //detects eyes & puts results into eyes vector
 		for (size_t j = 0; j < eyes.size(); j++) {
 			cv::Point eye_center(faces[i].x + eyes[j].x + eyes[j].width / 2, faces[i].y + eyes[j].y + eyes[j].height / 2);
 			int radius = ((eyes[j].width + eyes[j].height)*0.25);
 			cv::circle(frame, eye_center, radius,cv::Scalar(255,0,0),4);
 		}
 	}
-	cv::imshow("Real Time Detector",frame);
+	cv::imshow("Real Time Detector",frame); //shows image with detected feature markers
 }
 
 void cb_func::findFace(void) {
@@ -129,7 +130,7 @@ void cb_func::findFace(void) {
 
 		cb_func::detectAndShow(frame,face_haarcascade,eyes_haarcascade);
 
-		if (cv::waitKey(10) == 27) { break; }
+		if (cv::waitKey(10) == 27) { break; } //break if "esc" command is pressed
 	}
 
 
