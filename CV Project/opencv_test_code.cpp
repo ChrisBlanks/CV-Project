@@ -5,15 +5,15 @@ using namespace cb_func;
 
 void cb_func::imageOperations(void) {
 
-	cv::Mat img = cv::imread((std::string)PICTURES_DIRECTORY + (std::string)TEST_IMAGE + (std::string)TEST_IMAGE_EXTENSION);
-	cv::Mat grey_img = cv::imread((std::string)PICTURES_DIRECTORY + (std::string)TEST_IMAGE + (std::string)TEST_IMAGE_EXTENSION, cv::IMREAD_GRAYSCALE);
+	cv::Mat img = cv::imread((std::string)PICTURES_DIRECTORY + (std::string)TEST_IMAGE + (std::string)JPG_EXTENSION);
+	cv::Mat grey_img = cv::imread((std::string)PICTURES_DIRECTORY + (std::string)TEST_IMAGE + (std::string)JPG_EXTENSION, cv::IMREAD_GRAYSCALE);
 
 	if (img.empty() || grey_img.empty()) {
 		std::cerr << "Could not find image.\n";
 		return;
 	}
 	else {
-		cv::imwrite((std::string)PICTURES_DIRECTORY + (std::string)TEST_IMAGE + "_grey_version" + (std::string)TEST_IMAGE_EXTENSION, grey_img);
+		cv::imwrite((std::string)PICTURES_DIRECTORY + (std::string)TEST_IMAGE + "_grey_version" + (std::string)JPG_EXTENSION, grey_img);
 		cv::imshow("Title: Image", img);
 		cv::imshow("Title: Greyscale Image", grey_img);
 		cv::waitKey(0); //displays window until keypress in the image window
@@ -130,9 +130,67 @@ void cb_func::findFace(void) {
 
 		cb_func::detectAndShow(frame,face_haarcascade,eyes_haarcascade);
 
-		if (cv::waitKey(10) == 27) { break; } //break if "esc" command is pressed
+		if (cv::waitKey(10) == ESC_CODE) { break; } //break if "esc" command is pressed
 	}
 
 
+	return;
+}
+
+void cb_func::implementMaskOp(void) {
+	cv::Mat img = cv::imread((std::string)PICTURES_DIRECTORY + (std::string)TEST_IMAGE + (std::string)JPG_EXTENSION,cv::IMREAD_COLOR);
+	cv::Mat out;
+
+	if ( img.empty() ) {
+		std::cerr << "Could not find image.\n";
+		return;
+	}
+
+	cv::namedWindow("Input",cv::WINDOW_AUTOSIZE);
+	cv::imshow("Input", img);
+
+	cv::Mat kernel = (cv::Mat_<char>(3,3) << 0,-1,0,-1,5,-1,0,-1,0); //Makes a 3x3 kernel w/ mask values (image contrast enhancer)
+	cv::filter2D(img, out,img.depth() ,kernel); //applies kernel filter to all pixels in 'img' source & places result into 'out'
+	cv::namedWindow("Output",cv::WINDOW_AUTOSIZE);
+	cv::imshow("Output", out);
+	cv::waitKey(0); //displays window until keypress in the image window
+	
+	return;
+}
+
+
+//blends two images to create a cross-dissolve effect by using the linear blend operator
+void cb_func::blendImages(void) {
+	double alpha;
+	std::cout << "\nPlease, enter a value for alpha:\n>>>";
+	std::cin >> alpha;
+	if (alpha > 0 && alpha < 1) {
+		std::cout << "\nAcceptable alpha value.\n";
+	}
+	else { alpha = 0.5; } //random number between 0 and 1 
+	
+	double beta = 1 - alpha;
+
+	//loads pictures of runners
+	cv::Mat out_blend; //blended output image
+
+	cv::Mat src1 = cv::imread((std::string)PICTURES_DIRECTORY + (std::string)TEST_IMAGE_2 + (std::string)JPG_EXTENSION, cv::IMREAD_COLOR);
+	cv::Mat src2 = cv::imread((std::string)PICTURES_DIRECTORY + (std::string)TEST_IMAGE_3 + (std::string)JPG_EXTENSION, cv::IMREAD_COLOR);
+	cv::namedWindow("Image 1",cv::WINDOW_AUTOSIZE);
+	cv::namedWindow("Image 2", cv::WINDOW_AUTOSIZE);
+	cv::namedWindow("Output", cv::WINDOW_AUTOSIZE);
+
+	cv::resize(src1,src1,cv::Size(300,150));
+	cv::resize(src2, src2,cv::Size(300,150));
+
+	cv::imshow("Image 1", src1);
+	cv::imshow("Image 2", src2);
+
+	//blends images using: g(x) = f1_val_pix*beta + alpha*f2_val_pix + gamma
+	//f1 = src1 ; f2 = src2 ; out_blend = g(x) 
+	cv::addWeighted(src1,alpha,src2,beta,0,out_blend);// zeros out the gamma variable
+	// When alpha > 0.5, second image is shown more. Vice versa for when alpha < 0.5
+	cv::imshow("Output", out_blend);
+	cv::waitKey(0);
 	return;
 }

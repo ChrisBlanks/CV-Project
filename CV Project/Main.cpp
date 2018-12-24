@@ -9,7 +9,9 @@ int main(int argc, char* argv[]) {
 			arguments.push_back(argv[i]);
 		}
 	}
-	cb_func::findFace();
+	cb_func::blendImages();
+	//cb_func::implementMaskOp();
+	//cb_func::findFace();
 	//cb_func::webcamTest();
 	//cb_func::imageOperations();
 

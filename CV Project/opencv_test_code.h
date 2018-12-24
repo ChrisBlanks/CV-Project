@@ -25,7 +25,10 @@ namespace cb_func {
 
 	const std::string PICTURES_DIRECTORY = "C:/Users/Cabla/Pictures" ;
 	const std::string TEST_IMAGE= "/8-bit";
-	const std::string TEST_IMAGE_EXTENSION = ".jpg";
+	const std::string TEST_IMAGE_2 = "/sequence1";
+	const std::string TEST_IMAGE_3 = "/sequence2";
+	const std::string JPG_EXTENSION = ".jpg";
+	const std::string PNG_EXTENSION = ".png";
 
 	constexpr int ESC_CODE = 27;
 
@@ -44,4 +47,6 @@ namespace cb_func {
 	void editFrame(cv::Mat frame);
 	void findFace(void);
 	void detectAndShow(cv::Mat frame, cv::CascadeClassifier face, cv::CascadeClassifier eyes);
+	void implementMaskOp(void);
+	void blendImages(void);
 }
