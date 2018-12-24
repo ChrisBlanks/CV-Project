@@ -159,16 +159,24 @@ void cb_func::implementMaskOp(void) {
 }
 
 
-//blends two images to create a cross-dissolve effect by using the linear blend operator
-void cb_func::blendImages(void) {
-	double alpha;
-	std::cout << "\nPlease, enter a value for alpha:\n>>>";
-	std::cin >> alpha;
-	if (alpha > 0 && alpha < 1) {
+//prompts user for alpha value
+double cb_func::getOperatorValue(int ImageOperatorMode,double lower_bound = 0,double upper_bound = 1, double default_val = 0.5) {
+	double operator_val;
+	if (ImageOperatorMode == 0) { std::cout << "\nPlease, enter a value for alpha. The range is " << lower_bound << "-" << upper_bound << " :\n>>>"; }
+	else if(ImageOperatorMode == 1){ std::cout << "\nPlease, enter a value for beta. The range is " << lower_bound << "-" << upper_bound << " :\n>>>"; }
+	else if (ImageOperatorMode == 2) { std::cout << "\nPlease, enter a value for gamma. The range is " << lower_bound << "-" << upper_bound << " :\n>>>"; }
+	std::cin >> operator_val;
+	if (operator_val > lower_bound && operator_val < upper_bound) {
 		std::cout << "\nAcceptable alpha value.\n";
 	}
-	else { alpha = 0.5; } //random number between 0 and 1 
-	
+	else { operator_val = default_val; std::cout << "\nDefault value used: " << default_val << ".\n"; }
+	return operator_val;
+}
+
+
+//blends two images to create a cross-dissolve effect by using the linear blend operator
+void cb_func::blendImages(void) {
+	double alpha = cb_func::getOperatorValue(cb_func::ALPHA_MODE);
 	double beta = 1 - alpha;
 
 	//loads pictures of runners
@@ -191,6 +199,58 @@ void cb_func::blendImages(void) {
 	cv::addWeighted(src1,alpha,src2,beta,0,out_blend);// zeros out the gamma variable
 	// When alpha > 0.5, second image is shown more. Vice versa for when alpha < 0.5
 	cv::imshow("Output", out_blend);
+	cv::waitKey(0);
+	return;
+}
+
+
+void cb_func::changeContrastAndBrightness(void) {
+	double alpha = cb_func::getOperatorValue(cb_func::ALPHA_MODE,1,3,1); // range: 1-3; default: 1
+	double beta = cb_func::getOperatorValue(cb_func::BETA_MODE,0,100,0); // range: 0-100; default: 0
+
+	cv::Mat src = cv::imread(cb_func::PICTURES_DIRECTORY + cb_func::TEST_IMAGE_2 +cb_func::JPG_EXTENSION);
+	if (src.empty()) { return; }
+	cv::Mat out= cv::Mat::zeros(src.size(),src.type()); //zeroed matrix of same size & type
+
+	
+	for (int y = 0; y < src.rows; y++) {
+		for (int x = 0; x < src.cols; x++) {
+			for (int c = 0; c < src.channels(); c++) {
+				// g(x) = alpha*pix_val + beta     (for each pixel's channel values)
+				out.at<cv::Vec3b>(y,x)[c] = cv::saturate_cast<uchar>(alpha*src.at<cv::Vec3b>(y,x)[c]+beta);
+				//saturate_cast<uchar> clips values if they exceed the size of the final type
+			}
+		}
+	}
+	// Note: Does the same thing, but faster:    src.convertTo(out, -1, alpha, beta);
+
+	//Note: Beta can make an image brighter & alpha spreads the color levels (either compresses or decompresses the histogram of values),
+	// which can affect the contrast.
+
+	cv::imshow("Source", src);
+	cv::imshow("Output",out);
+	cv::waitKey(0);
+
+	return;
+}
+
+//can be used to correct the brightness of an image using a non-linear transformation:
+// Out = 255 * (IN/255)^gamma
+void cb_func::performGammaCorrection(void) {
+	double gamma = cb_func::getOperatorValue(cb_func::GAMMA_MODE,0,25,0.4);
+	cv::Mat src = cv::imread(cb_func::PICTURES_DIRECTORY + cb_func::TEST_IMAGE_2 + cb_func::JPG_EXTENSION,cv::IMREAD_COLOR);
+	if (src.empty()) { return; }
+
+	cv::Mat lookUpTable(1,256,CV_8U); //1 by 256 vector with 8-bit unsigned data
+	uchar* p = lookUpTable.ptr();
+	for (int i=0; i < 256; ++i) {
+		p[i] = cv::saturate_cast<uchar>(pow((i/255),gamma)*255.0); //performs gamma operation on table values
+	}
+	cv::Mat out = src.clone();
+	cv::LUT(src, lookUpTable, out); //copies the pre-calculated values in lookUpTabl into the "out" matrix using input indices
+
+	cv::imshow("Input",src);
+	cv::imshow("Output",out);
 	cv::waitKey(0);
 	return;
 }

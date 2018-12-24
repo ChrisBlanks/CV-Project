@@ -40,6 +40,8 @@ namespace cb_func {
 	constexpr int G_NEW = 80;
 	constexpr int B_NEW = 178;
 
+	enum ImageOperatorModes {ALPHA_MODE,BETA_MODE,GAMMA_MODE}; // used in getOperatorValue
+
 	//functions for testing OpenCV library
 
 	void imageOperations(void);
@@ -49,4 +51,7 @@ namespace cb_func {
 	void detectAndShow(cv::Mat frame, cv::CascadeClassifier face, cv::CascadeClassifier eyes);
 	void implementMaskOp(void);
 	void blendImages(void);
+	void changeContrastAndBrightness(void);
+	double getOperatorValue(int ImageOperatorMode ,double lower_bound, double upper_bound,double default_val);
+	void performGammaCorrection(void);
 }
