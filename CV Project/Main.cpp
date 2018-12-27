@@ -9,7 +9,10 @@ int main(int argc, char* argv[]) {
 			arguments.push_back(argv[i]);
 		}
 	}
-	cb_func::performGammaCorrection();
+
+	cb_func::changeContrastAndBrightness(cb_func::TRACKBAR_MODE);
+	//cb_func::performDiscreteFourierTransform();
+	//cb_func::performGammaCorrection();
 	//cb_func::changeContrastAndBrightness();
 	//cb_func::blendImages();
 	//cb_func::implementMaskOp();

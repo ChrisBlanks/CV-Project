@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <functional>
 
 //OpenCV dependencies
 #include <opencv2/opencv.hpp>
@@ -40,7 +41,7 @@ namespace cb_func {
 	constexpr int G_NEW = 80;
 	constexpr int B_NEW = 178;
 
-	enum ImageOperatorModes {ALPHA_MODE,BETA_MODE,GAMMA_MODE}; // used in getOperatorValue
+	enum ImageOperatorModes {ALPHA_MODE,BETA_MODE,GAMMA_MODE, TRACKBAR_MODE}; // used in getOperatorValue
 
 	//functions for testing OpenCV library
 
@@ -51,7 +52,13 @@ namespace cb_func {
 	void detectAndShow(cv::Mat frame, cv::CascadeClassifier face, cv::CascadeClassifier eyes);
 	void implementMaskOp(void);
 	void blendImages(void);
-	void changeContrastAndBrightness(void);
-	double getOperatorValue(int ImageOperatorMode ,double lower_bound, double upper_bound,double default_val);
+	void brightness_trackbar(int value, void* userdata);
+	void contrast_trackbar(int value, void* userdata);
+	void startTrackbarForContrastAndBrightness(void);
+	void editContrastAndBrightness(cv::Mat src, cv::Mat output, double alpha, double beta);
+	void changeContrastAndBrightness(int OperationMode);
 	void performGammaCorrection(void);
+	void performDiscreteFourierTransform(void);
+
+	double getOperatorValue(int ImageOperatorMode, double lower_bound, double upper_bound, double default_val);
 }

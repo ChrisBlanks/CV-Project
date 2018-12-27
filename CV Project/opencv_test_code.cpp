@@ -1,7 +1,6 @@
 #include "opencv_test_code.h"
 
 
-using namespace cb_func;
 
 void cb_func::imageOperations(void) {
 
@@ -204,32 +203,95 @@ void cb_func::blendImages(void) {
 }
 
 
-void cb_func::changeContrastAndBrightness(void) {
-	double alpha = cb_func::getOperatorValue(cb_func::ALPHA_MODE,1,3,1); // range: 1-3; default: 1
-	double beta = cb_func::getOperatorValue(cb_func::BETA_MODE,0,100,0); // range: 0-100; default: 0
+static void cb_func::brightness_trackbar(int value, void* userdata) {
+	//callback function for slider
+	double contrast = *(double *)userdata; //referenced value needed for calculations
+	double brightness = value; //value received from slider position
 
-	cv::Mat src = cv::imread(cb_func::PICTURES_DIRECTORY + cb_func::TEST_IMAGE_2 +cb_func::JPG_EXTENSION);
-	if (src.empty()) { return; }
-	cv::Mat out= cv::Mat::zeros(src.size(),src.type()); //zeroed matrix of same size & type
+	cv::Mat source = cv::imread(cb_func::PICTURES_DIRECTORY + cb_func::TEST_IMAGE_2 + cb_func::JPG_EXTENSION);
+	if (source.empty()) { return; }
+	cv::Mat output = cv::Mat::zeros(source.size(), source.type()); //zeroed matrix of same size & type
+	cb_func::editContrastAndBrightness(source, output,contrast, brightness);
+	cv::imshow("Edited Image",output);
+}
 
+
+static void cb_func::contrast_trackbar(int value, void*userdata) {
+	//callback function for slider
+	double contrast = value;
+	double brightness = *(double *)userdata;
 	
+	cv::Mat source = cv::imread(cb_func::PICTURES_DIRECTORY + cb_func::TEST_IMAGE_2 + cb_func::JPG_EXTENSION);
+	if (source.empty()) { return; }
+
+	cv::Mat output = cv::Mat::zeros(source.size(), source.type()); //zeroed matrix of same size & type
+	cb_func::editContrastAndBrightness(source, output, contrast, brightness);
+	
+	cv::imshow("Edited Image", output);
+}
+
+void cb_func::startTrackbarForContrastAndBrightness(void) {
+	double constrast_slider =1, brightness_slider=1;
+	int placeholder = 1; //what value the slider is initialized at
+	
+	const int contrast_slide_max = 3; 
+	const int brightness_slide_max = 100;
+
+	cv::Mat source = cv::imread(cb_func::PICTURES_DIRECTORY + cb_func::TEST_IMAGE_2 + cb_func::JPG_EXTENSION);
+	if (source.empty()) { return; }
+	cv::imshow("Original Image", source);
+	cv::namedWindow("Edited Image", cv::WINDOW_AUTOSIZE);
+
+	char ContrastTrackbarName[50], BrightnessTrackbarName[50];
+
+	sprintf_s(ContrastTrackbarName,"Contrast x %d",contrast_slide_max); //formats string into name
+	sprintf_s(BrightnessTrackbarName, "Brightness x %d", brightness_slide_max);
+	
+	cv::createTrackbar(ContrastTrackbarName,"Edited Image"
+		,&placeholder,contrast_slide_max, contrast_trackbar,(void*)&brightness_slider);
+
+	cv::createTrackbar(BrightnessTrackbarName, "Edited Image"
+		, &placeholder, brightness_slide_max, brightness_trackbar,(void*)&constrast_slider);
+
+	cv::waitKey(0);
+	return;
+}
+
+void cb_func::editContrastAndBrightness(cv::Mat src, cv::Mat output,double alpha, double beta) {
+	//Note: Beta can make an image brighter & alpha spreads the color levels (either compresses or decompresses the histogram of values),
+	// which can affect the contrast.
 	for (int y = 0; y < src.rows; y++) {
 		for (int x = 0; x < src.cols; x++) {
 			for (int c = 0; c < src.channels(); c++) {
 				// g(x) = alpha*pix_val + beta     (for each pixel's channel values)
-				out.at<cv::Vec3b>(y,x)[c] = cv::saturate_cast<uchar>(alpha*src.at<cv::Vec3b>(y,x)[c]+beta);
+				output.at<cv::Vec3b>(y, x)[c] = cv::saturate_cast<uchar>(alpha*src.at<cv::Vec3b>(y, x)[c] + beta);
 				//saturate_cast<uchar> clips values if they exceed the size of the final type
 			}
 		}
 	}
-	// Note: Does the same thing, but faster:    src.convertTo(out, -1, alpha, beta);
 
-	//Note: Beta can make an image brighter & alpha spreads the color levels (either compresses or decompresses the histogram of values),
-	// which can affect the contrast.
+	return;
+}
 
-	cv::imshow("Source", src);
-	cv::imshow("Output",out);
-	cv::waitKey(0);
+void cb_func::changeContrastAndBrightness(int OperationMode = 0) {
+	
+	if (OperationMode == cb_func::TRACKBAR_MODE) {
+		startTrackbarForContrastAndBrightness();
+	}
+	else {
+		cv::Mat src = cv::imread(cb_func::PICTURES_DIRECTORY + cb_func::TEST_IMAGE_2 + cb_func::JPG_EXTENSION);
+		if (src.empty()) { return; }
+		cv::Mat out = cv::Mat::zeros(src.size(), src.type()); //zeroed matrix of same size & type
+		double alpha = cb_func::getOperatorValue(cb_func::ALPHA_MODE, 1, 3, 1); // range: 1-3; default: 1
+		double beta = cb_func::getOperatorValue(cb_func::BETA_MODE, 0, 100, 0); // range: 0-100; default: 0
+
+		editContrastAndBrightness(src, out, alpha, beta);
+		// Note: Does the same thing, but faster:    src.convertTo(out, -1, alpha, beta);
+
+		cv::imshow("Source", src);
+		cv::imshow("Output", out);
+		cv::waitKey(0);
+	}
 
 	return;
 }
@@ -254,3 +316,61 @@ void cb_func::performGammaCorrection(void) {
 	cv::waitKey(0);
 	return;
 }
+
+
+//Performs a dft on an input image
+void cb_func::performDiscreteFourierTransform(void) {
+
+	cv::Mat padded; //origninal src will be placed in the center of padded matrix
+	cv::Mat src = cv::imread(cb_func::PICTURES_DIRECTORY + cb_func::TEST_IMAGE_2 + cb_func::JPG_EXTENSION, cv::IMREAD_GRAYSCALE);
+	if (src.empty()) { return; }
+
+	int m = cv::getOptimalDFTSize(src.rows); //gets optimal size for DFT
+	int n = cv::getOptimalDFTSize(src.cols); //image size will become a multiple of two, three, and five
+	cv::copyMakeBorder(src,padded,0,m-src.rows,0,n-src.cols,cv::BORDER_CONSTANT,cv::Scalar::all(0)); //expands border of image
+
+	cv::Mat planes[] = {cv::Mat_<float>(padded),cv::Mat::zeros(padded.size(),CV_32F)};
+	cv::Mat complexSrc; //Fourier transform deals with imaginary numbers
+
+	cv::merge(planes, 2, complexSrc); //creates a multi-channel matrix (2 channels in this case)
+	cv::dft(complexSrc, complexSrc); //performs dft
+
+	cv::split(complexSrc,planes); //planes[0] = real part ; planes[1] = imaginary
+	cv::magnitude(planes[0], planes[1], planes[0]); //magnitude = sqrt(dimen_1^2 + dimen_2^2); stored in 0th arg
+	cv::Mat magnitudeSrc = planes[0]; 
+
+	magnitudeSrc += cv::Scalar::all(1); // formula: M = log(1+ M)
+	cv::log(magnitudeSrc, magnitudeSrc); //switches to log scale because range of fourier coefficients too large
+
+	magnitudeSrc = magnitudeSrc(cv::Rect(0,0,magnitudeSrc.cols & -2,magnitudeSrc.rows & -2)); //crop if odd number of rows or columns
+	
+	int cx = magnitudeSrc.cols / 2;
+	int cy = magnitudeSrc.rows / 2;
+
+	cv::Mat q0(magnitudeSrc, cv::Rect(0, 0, cx, cy)); //top left quadrant
+	cv::Mat q1(magnitudeSrc, cv::Rect(cx, 0, cx, cy)); //top right 
+	cv::Mat q2(magnitudeSrc, cv::Rect(0, cy, cx, cy)); //bottom left
+	cv::Mat q3(magnitudeSrc, cv::Rect(cx, cy, cx, cy)); //bottom right
+
+	cv::Mat temp;
+
+	q0.copyTo(temp); //swap top left with bottom right
+	q3.copyTo(q0);
+	temp.copyTo(q3);
+
+	q1.copyTo(temp); //swap top right with bottom left
+	q2.copyTo(q1);
+	temp.copyTo(q2);
+
+	int alpha = 0; int beta = 1;
+	cv::normalize(magnitudeSrc, magnitudeSrc, alpha,beta, cv::NORM_MINMAX);
+	//transforms into a viewable image (float values between 0 & 1)
+
+	cv::imshow("Input", src);
+	cv::imshow("Spectrum magnitude", magnitudeSrc); //will show an image that is representative of geometrical orientation
+	cv::waitKey(0);
+
+	return;
+}
+
+
