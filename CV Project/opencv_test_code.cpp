@@ -26,11 +26,8 @@ void cb_func::imageOperations(void) {
 			uchar blue = pixel_intensity.val[2];
 
 			std::cout << "RGB Values: " << (int)red << ", " << (int)green << ", " << (int)blue << std::endl;
-
-
 		}
 	}
-
 }
 
 //edits the original frame
@@ -49,7 +46,6 @@ void cb_func::editFrame(cv::Mat frame) {
 			frame.at<cv::Vec3b>(y, x) = pix_colors; 
 		}
 	}
-
 	return; 
 }
 
@@ -161,9 +157,9 @@ void cb_func::implementMaskOp(void) {
 //prompts user for alpha value
 double cb_func::getOperatorValue(int ImageOperatorMode,double lower_bound = 0,double upper_bound = 1, double default_val = 0.5) {
 	double operator_val;
-	if (ImageOperatorMode == 0) { std::cout << "\nPlease, enter a value for alpha. The range is " << lower_bound << "-" << upper_bound << " :\n>>>"; }
-	else if(ImageOperatorMode == 1){ std::cout << "\nPlease, enter a value for beta. The range is " << lower_bound << "-" << upper_bound << " :\n>>>"; }
-	else if (ImageOperatorMode == 2) { std::cout << "\nPlease, enter a value for gamma. The range is " << lower_bound << "-" << upper_bound << " :\n>>>"; }
+	if (ImageOperatorMode == cb_func::ALPHA_MODE) { std::cout << "\nPlease, enter a value for alpha. The range is " << lower_bound << "-" << upper_bound << " :\n>>>"; }
+	else if(ImageOperatorMode == cb_func::BETA_MODE){ std::cout << "\nPlease, enter a value for beta. The range is " << lower_bound << "-" << upper_bound << " :\n>>>"; }
+	else if (ImageOperatorMode == cb_func::GAMMA_MODE) { std::cout << "\nPlease, enter a value for gamma. The range is " << lower_bound << "-" << upper_bound << " :\n>>>"; }
 	std::cin >> operator_val;
 	if (operator_val > lower_bound && operator_val < upper_bound) {
 		std::cout << "\nAcceptable alpha value.\n";
@@ -203,7 +199,7 @@ void cb_func::blendImages(void) {
 }
 
 
-static void cb_func::brightness_trackbar(int value, void* userdata) {
+void cb_func::brightness_trackbar(int value, void* userdata) {
 	//callback function for slider
 	double contrast = *(double *)userdata; //referenced value needed for calculations
 	double brightness = value; //value received from slider position
@@ -216,7 +212,7 @@ static void cb_func::brightness_trackbar(int value, void* userdata) {
 }
 
 
-static void cb_func::contrast_trackbar(int value, void*userdata) {
+void cb_func::contrast_trackbar(int value, void*userdata) {
 	//callback function for slider
 	double contrast = value;
 	double brightness = *(double *)userdata;

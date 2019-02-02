@@ -4,7 +4,6 @@
 #include <vector>
 #include <iostream>
 #include <string>
-#include <functional>
 
 //OpenCV dependencies
 #include <opencv2/opencv.hpp>
