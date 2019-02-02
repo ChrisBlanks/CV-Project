@@ -1,5 +1,6 @@
 //Programmer: Chris Blanks
 #include "opencv_test_code.h"
+#include "ImageProcessing.h"
 
 int main(int argc, char* argv[]) {
 
@@ -10,16 +11,8 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	cb_func::changeContrastAndBrightness(cb_func::TRACKBAR_MODE);
-	//cb_func::performDiscreteFourierTransform();
-	//cb_func::performGammaCorrection();
-	//cb_func::changeContrastAndBrightness();
-	//cb_func::blendImages();
-	//cb_func::implementMaskOp();
-	//cb_func::findFace();
-	//cb_func::webcamTest();
-	//cb_func::imageOperations();
-
+	//cb_func::changeContrastAndBrightness(cb_func::TRACKBAR_MODE);
+	imageProcess::drawAtom();
 	return 0;
 }
 

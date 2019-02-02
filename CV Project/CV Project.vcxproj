@@ -130,10 +130,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ImageProcessing.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="opencv_test_code.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ImageProcessing.h" />
     <ClInclude Include="opencv_test_code.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
